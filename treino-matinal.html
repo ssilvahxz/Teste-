@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Amanhecer Ativo — Treino Matinal Rápido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo+Expanded:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0b0c10;
+    --surface: #15171d;
+    --surface-2: #1d2028;
+    --text: #f4f2ec;
+    --text-dim: #8b8d97;
+    --work: #ff5a36;
+    --work-dim: #3a1c14;
+    --rest: #2fd6a8;
+    --rest-dim: #12332b;
+    --prep: #ffc53d;
+    --line: #262933;
+    --radius: 22px;
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: radial-gradient(120% 90% at 50% -10%, #1a1c24 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100dvh;
+    padding: 18px;
+    overflow-x:hidden;
+  }
+  .app{
+    width:100%;
+    max-width: 460px;
+    position:relative;
+  }
+  .screen{ display:none; }
+  .screen.active{ display:block; animation: fadeUp .35s ease both; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+  @media (prefers-reduced-motion: reduce){ .screen.active{ animation:none; } }
+
+  /* ---------- Sunrise signature mark ---------- */
+  .sunrise{
+    width:100%;
+    height:64px;
+    margin-bottom: 6px;
+    overflow:hidden;
+    position:relative;
+    border-radius: 14px;
+  }
+  .sunrise svg{ width:100%; height:120px; display:block; }
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:.22em;
+    font-size:11px;
+    color: var(--text-dim);
+    font-weight:600;
+    margin: 14px 0 4px;
+  }
+  h1{
+    font-family:'Archivo Expanded', 'Space Grotesk', sans-serif;
+    font-weight:800;
+    font-size: 30px;
+    line-height:1.05;
+    margin: 0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  p.lede{ color:var(--text-dim); margin:0 0 22px; font-size:14.5px; line-height:1.5; }
+
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .card h2{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    color:var(--text-dim);
+    margin:0 0 12px;
+    font-weight:600;
+  }
+
+  .choice-row{ display:grid; grid-template-columns: repeat(3,1fr); gap:8px; }
+  .choice-row.two{ grid-template-columns: repeat(2,1fr); }
+  .choice{
+    background: var(--surface-2);
+    border:1px solid var(--line);
+    color: var(--text);
+    border-radius: 14px;
+    padding: 14px 8px;
+    text-align:center;
+    cursor:pointer;
+    font-family:inherit;
+    transition: transform .12s ease, border-color .15s ease, background .15s ease;
+    -webkit-user-select:none; user-select:none;
+  }
+  .choice .num{ font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:22px; display:block; }
+  .choice .lbl{ font-size:11px; color:var(--text-dim); display:block; margin-top:2px; }
+  .choice:active{ transform: scale(.96); }
+  .choice.selected{ border-color: var(--work); background: linear-gradient(180deg, rgba(255,90,54,.18), rgba(255,90,54,.05)); }
+  .choice.selected .lbl{ color: #ffb59f; }
+
+  .intensity-card{
+    background: var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:16px;
+    cursor:pointer;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .intensity-card + .intensity-card{ margin-top:10px; }
+  .intensity-card .dot{
+    width:11px; height:11px; border-radius:50%; margin-top:5px; flex-shrink:0;
+    background: var(--text-dim);
+  }
+  .intensity-card.selected{ border-color: var(--rest); background: linear-gradient(180deg, rgba(47,214,168,.14), rgba(47,214,168,.03)); }
+  .intensity-card.selected .dot{ background: var(--rest); box-shadow: 0 0 0 4px rgba(47,214,168,.18); }
+  .intensity-card .t{ font-weight:600; font-size:14.5px; }
+  .intensity-card .d{ font-size:12.5px; color:var(--text-dim); margin-top:3px; line-height:1.4; }
+
+  .summary-line{
+    display:flex; justify-content:space-between; font-size:13px; color:var(--text-dim);
+    padding: 3px 0;
+  }
+  .summary-line b{ color:var(--text); font-weight:600; }
+
+  .btn-primary{
+    width:100%;
+    padding: 17px;
+    border-radius: 16px;
+    border:none;
+    background: linear-gradient(135deg, var(--work), #ff8146);
+    color:#150900;
+    font-family:'Archivo Expanded', sans-serif;
+    font-weight:800;
+    font-size:16px;
+    letter-spacing:.01em;
+    cursor:pointer;
+    box-shadow: 0 10px 26px -10px rgba(255,90,54,.55);
+  }
+  .btn-primary:active{ transform: scale(.985); }
+
+  .btn-ghost{
+    width:100%;
+    padding:15px;
+    border-radius:16px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--text);
+    font-family:inherit;
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+  }
+
+  /* ---------- Workout screen ---------- */
+  .workout-wrap{ text-align:center; padding-top:6px; }
+  .status-row{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:12.5px; color:var(--text-dim); padding: 4px 4px 18px;
+  }
+  .status-row b{ color:var(--text); }
+
+  .phase-label{
+    font-size:14px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+    margin-bottom: 18px; transition: color .25s ease;
+  }
+  .phase-label.work{ color: var(--work); }
+  .phase-label.rest{ color: var(--rest); }
+  .phase-label.prep{ color: var(--prep); }
+
+  .ring-wrap{ position:relative; width:min(78vw,300px); height:min(78vw,300px); margin:0 auto; }
+  .ring-wrap svg{ width:100%; height:100%; transform: rotate(-90deg); }
+  .ring-bg{ fill:none; stroke: var(--surface-2); stroke-width:10; }
+  .ring-fg{ fill:none; stroke: var(--work); stroke-width:10; stroke-linecap:round; transition: stroke-dashoffset 1s linear, stroke .25s ease; }
+  .ring-fg.rest{ stroke: var(--rest); }
+  .ring-fg.prep{ stroke: var(--prep); }
+
+  .ring-center{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .time-num{
+    font-family:'Archivo Expanded', sans-serif;
+    font-weight:800;
+    font-size: clamp(56px, 17vw, 80px);
+    line-height:1;
+    font-variant-numeric: tabular-nums;
+  }
+  .exercise-name{ font-size:15px; color:var(--text-dim); margin-top:6px; padding:0 20px; min-height:20px; }
+
+  .next-up{
+    margin-top: 22px;
+    font-size:12.5px;
+    color:var(--text-dim);
+    background: var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:10px 14px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .next-up b{ color:var(--text); font-weight:600; }
+
+  .controls{
+    display:grid; grid-template-columns: 56px 1fr 56px; gap:12px; margin-top:24px; align-items:center;
+  }
+  .icon-btn{
+    width:56px; height:56px; border-radius:50%;
+    border:1px solid var(--line); background: var(--surface-2); color:var(--text);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .icon-btn:active{ transform: scale(.94); }
+  .play-btn{
+    height:64px; border-radius:20px; border:none; cursor:pointer;
+    background: linear-gradient(135deg, var(--work), #ff8146);
+    color:#150900; font-family:'Archivo Expanded',sans-serif; font-weight:800; font-size:15px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .play-btn:active{ transform: scale(.98); }
+
+  /* ---------- Done screen ---------- */
+  .done-wrap{ text-align:center; padding: 30px 6px 6px; }
+  .done-badge{
+    width:84px; height:84px; border-radius:50%; margin:0 auto 18px;
+    background: linear-gradient(135deg, var(--rest), #6df0cf);
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .footer-note{ text-align:center; font-size:11.5px; color:#5c5e68; margin-top: 16px; line-height:1.5; }
+  .footer-note a{ color:#8b8d97; }
+
+  /* ---------- Login screen ---------- */
+  :root{
+    --cyan: #37e6e0;
+    --cyan-dim: #0f2a2c;
+  }
+  .login-card{
+    background: linear-gradient(180deg, rgba(21,23,29,.95), rgba(11,12,16,.98));
+    border: 1px solid rgba(55,230,224,.35);
+    border-radius: 20px;
+    padding: 30px 24px 26px;
+    box-shadow: 0 0 0 1px rgba(55,230,224,.05), 0 30px 70px -30px rgba(55,230,224,.25);
+    margin-top: 10vh;
+  }
+  .login-logo{
+    text-align:center;
+    margin-bottom: 20px;
+  }
+  .login-logo .mark{
+    font-family:'Archivo Expanded', sans-serif;
+    font-weight:800;
+    font-size: 26px;
+    letter-spacing:.02em;
+    color: var(--cyan);
+    text-shadow: 0 0 18px rgba(55,230,224,.55);
+  }
+  .login-logo .mark span{ color: var(--text); }
+  .login-logo .tag{
+    font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--text-dim); margin-top:4px;
+  }
+  .login-title{
+    text-align:center; font-size:19px; font-weight:700; color:var(--cyan); margin: 4px 0 6px;
+    text-shadow: 0 0 14px rgba(55,230,224,.3);
+  }
+  .login-sub{
+    text-align:center; font-size:12.5px; color:var(--text-dim); line-height:1.5; margin: 0 0 22px;
+  }
+  .field{
+    position:relative; margin-bottom: 12px;
+  }
+  .field input{
+    width:100%;
+    background: rgba(255,255,255,.02);
+    border: 1px solid rgba(55,230,224,.35);
+    border-radius: 12px;
+    padding: 13px 14px 13px 40px;
+    color: var(--text);
+    font-family:inherit;
+    font-size: 13.5px;
+    outline:none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .field input::placeholder{ color: #6b7078; }
+  .field input:focus{ border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(55,230,224,.12); }
+  .field .fico{
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    color: var(--cyan); opacity:.8; display:flex;
+  }
+  .field .toggle-eye{
+    position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    background:none; border:none; color:var(--text-dim); cursor:pointer; padding:4px;
+  }
+  .forgot-row{ text-align:right; margin: -2px 0 16px; }
+  .forgot-row a{ font-size:11.5px; color: var(--cyan); text-decoration:none; }
+
+  .btn-cyan{
+    width:100%;
+    padding:15px;
+    border-radius: 12px;
+    border:none;
+    background: linear-gradient(135deg, var(--cyan), #6bf3ee);
+    color:#04211f;
+    font-family:'Archivo Expanded', sans-serif;
+    font-weight:800;
+    font-size:14px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    cursor:pointer;
+    box-shadow: 0 10px 26px -10px rgba(55,230,224,.55);
+  }
+  .btn-cyan:active{ transform: scale(.985); }
+  .btn-cyan small{ display:block; font-size:9.5px; letter-spacing:.14em; font-weight:600; opacity:.75; margin-top:2px; text-transform:uppercase; }
+
+  .divider{
+    display:flex; align-items:center; gap:10px; margin: 20px 0 16px; color: var(--text-dim); font-size:11.5px;
+  }
+  .divider::before, .divider::after{ content:""; flex:1; height:1px; background: var(--line); }
+
+  .btn-google{
+    width:100%;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    padding:13px;
+    border-radius: 12px;
+    border: 1px solid rgba(55,230,224,.45);
+    background: rgba(255,255,255,.02);
+    color: var(--text);
+    font-family:inherit;
+    font-weight:600;
+    font-size:13.5px;
+    cursor:pointer;
+  }
+  .btn-google:active{ transform: scale(.985); }
+
+  .login-foot{
+    text-align:center; margin-top:20px; font-size:12px; color:var(--text-dim); line-height:1.9;
+  }
+  .login-foot a{ color: var(--cyan); text-decoration:none; }
+  .guest-link{
+    display:block; text-align:center; margin-top:14px; font-size:12px; color:var(--text-dim); text-decoration:underline dotted;
+    background:none; border:none; cursor:pointer; width:100%; font-family:inherit;
+  }
+  .local-note{
+    text-align:center; font-size:10.5px; color:#565962; margin-top:16px; line-height:1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===================== LOGIN SCREEN ===================== -->
+  <section class="screen active" id="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="mark">AMANHECER<span> ATIVO</span></div>
+        <div class="tag">Evolve your limits</div>
+      </div>
+      <div class="login-title">Bem-vindo(a) de volta</div>
+      <p class="login-sub">Entre para acessar seu treino e acompanhar seu progresso.</p>
+
+      <form id="login-form">
+        <div class="field">
+          <span class="fico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6.5L12 13L21 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="3" y="4.5" width="18" height="15" rx="2.2" stroke="currentColor" stroke-width="1.6"/></svg>
+          </span>
+          <input type="text" id="login-email" placeholder="E-mail ou usuário" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <span class="fico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="10.5" width="14" height="9.5" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6"/></svg>
+          </span>
+          <input type="password" id="login-pass" placeholder="Senha" autocomplete="current-password" required>
+          <button type="button" class="toggle-eye" id="toggle-eye" aria-label="Mostrar senha">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
+          </button>
+        </div>
+        <div class="forgot-row"><a href="#" id="forgot-link">Esqueceu a senha?</a></div>
+
+        <button type="submit" class="btn-cyan">Entrar<small>Continuar</small></button>
+      </form>
+
+      <div class="divider">ou continue com</div>
+      <button class="btn-google" id="google-btn">
+        <svg width="17" height="17" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.3 1 7.3 2.7l5.7-5.7C33.8 6.5 29.2 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5 43.5 34.8 43.5 24c0-1.2-.1-2.4-.4-3.5Z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 18.9 13 24 13c2.8 0 5.3 1 7.3 2.7l5.7-5.7C33.8 6.5 29.2 4.5 24 4.5c-7.5 0-14 4.2-17.7 10.2Z"/><path fill="#4CAF50" d="M24 43.5c5.1 0 9.7-1.9 13.2-5.2l-6.1-5.2C29.1 34.7 26.7 35.5 24 35.5c-5.3 0-9.7-3.4-11.3-8.1l-6.5 5C9.1 39 16 43.5 24 43.5Z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.1 5.2C40.5 36 43.5 30.5 43.5 24c0-1.2-.1-2.4-.4-3.5Z"/></svg>
+        Continuar com o Google
+      </button>
+
+      <div class="login-foot">Não tem conta? <a href="#" id="signup-link">Criar conta</a><br/>Ao entrar, você concorda com nossos <a href="#">Termos de Uso</a>.</div>
+      <button class="guest-link" id="guest-btn">Continuar sem conta</button>
+      <div class="local-note">Login local: seus dados ficam salvos só neste navegador, sem servidor externo. O botão do Google não faz autenticação real — apenas entra como convidado.</div>
+    </div>
+  </section>
+
+  <!-- ===================== SETUP SCREEN ===================== -->
+  <section class="screen" id="setup-screen">
+    <div class="sunrise" aria-hidden="true">
+      <svg viewBox="0 0 400 120" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffc53d"/>
+            <stop offset="100%" stop-color="#ff5a36"/>
+          </linearGradient>
+        </defs>
+        <circle cx="200" cy="95" r="60" fill="url(#sun)"/>
+        <rect x="0" y="95" width="400" height="25" fill="#0b0c10"/>
+        <line x1="200" y1="10" x2="200" y2="28" stroke="#ffc53d" stroke-width="3" stroke-linecap="round"/>
+        <line x1="140" y1="26" x2="128" y2="14" stroke="#ffc53d" stroke-width="3" stroke-linecap="round"/>
+        <line x1="260" y1="26" x2="272" y2="14" stroke="#ffc53d" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="eyebrow">Amanhecer Ativo</div>
+    <h1>Treino Matinal<br/>Rápido</h1>
+    <p class="lede">Escolha o tempo que você tem e a intensidade. A gente monta o circuito, o cronômetro e os avisos sonoros — sem equipamento nenhum.</p>
+
+    <div class="card">
+      <h2>Tempo disponível</h2>
+      <div class="choice-row" id="duration-row">
+        <div class="choice" data-min="10"><span class="num">10</span><span class="lbl">minutos</span></div>
+        <div class="choice selected" data-min="15"><span class="num">15</span><span class="lbl">minutos</span></div>
+        <div class="choice" data-min="20"><span class="num">20</span><span class="lbl">minutos</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Intensidade</h2>
+      <div class="intensity-card selected" data-level="mobilidade">
+        <div class="dot"></div>
+        <div>
+          <div class="t">Acordar o corpo</div>
+          <div class="d">Mobilidade e ritmo leve — 40s de exercício / 20s de descanso. Ideal pra soltar o corpo sem suar.</div>
+        </div>
+      </div>
+      <div class="intensity-card" data-level="cardio">
+        <div class="dot"></div>
+        <div>
+          <div class="t">Suar de vez</div>
+          <div class="d">Cardio forte, protocolo Tabata clássico — 20s de exercício / 10s de descanso, no limite.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="summary-card">
+      <h2>Resumo do circuito</h2>
+      <div class="summary-line"><span>Rounds</span><b id="sum-rounds">—</b></div>
+      <div class="summary-line"><span>Trabalho / descanso</span><b id="sum-interval">—</b></div>
+      <div class="summary-line"><span>Exercícios sorteados</span><b id="sum-count">—</b></div>
+    </div>
+
+    <button class="btn-primary" id="start-btn">Gerar treino e começar</button>
+    <div class="footer-note">Som e vibração ativados automaticamente ao iniciar.<br/>Deixe o celular apoiado — os números são grandes de propósito.</div>
+  </section>
+
+  <!-- ===================== WORKOUT SCREEN ===================== -->
+  <section class="screen" id="workout-screen">
+    <div class="workout-wrap">
+      <div class="status-row">
+        <span>Round <b id="round-now">1</b>/<b id="round-total">12</b></span>
+        <span>Restam <b id="time-left-total">15:00</b></span>
+      </div>
+
+      <div class="phase-label work" id="phase-label">Preparar</div>
+
+      <div class="ring-wrap">
+        <svg viewBox="0 0 220 220">
+          <circle class="ring-bg" cx="110" cy="110" r="98"></circle>
+          <circle class="ring-fg" id="ring-fg" cx="110" cy="110" r="98"></circle>
+        </svg>
+        <div class="ring-center">
+          <div class="time-num" id="time-num">5</div>
+          <div class="exercise-name" id="exercise-name">Prepare-se</div>
+        </div>
+      </div>
+
+      <div class="next-up">
+        <span>A seguir</span>
+        <b id="next-exercise">—</b>
+      </div>
+
+      <div class="controls">
+        <button class="icon-btn" id="reset-btn" title="Parar e voltar" aria-label="Parar e voltar">■</button>
+        <button class="play-btn" id="pause-btn">Pausar</button>
+        <button class="icon-btn" id="skip-btn" title="Pular etapa" aria-label="Pular etapa">»</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== DONE SCREEN ===================== -->
+  <section class="screen" id="done-screen">
+    <div class="done-wrap">
+      <div class="done-badge">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none"><path d="M4 12.5L9.5 18L20 6" stroke="#0b0c10" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h1>Treino concluído</h1>
+      <p class="lede" id="done-summary">Você fechou o circuito. Bom dia bem começado.</p>
+      <button class="btn-primary" id="restart-btn">Fazer outro treino</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Data ----------
+  const EXERCISES = {
+    mobilidade: [
+      "Rotação de ombros", "Círculos de quadril", "Gato-camelo",
+      "Marcha estacionária", "Agachamento livre lento", "Alongamento de panturrilha",
+      "Rotação de tronco", "Elevação de joelhos parada", "Prancha leve nos joelhos",
+      "Balanço de perna (mobilidade de quadril)", "Círculos de braço", "Passada lateral leve"
+    ],
+    cardio: [
+      "Polichinelos", "Agachamento com salto", "Prancha",
+      "Flexão de braço (ou adaptada nos joelhos)", "Corrida estacionária alta",
+      "Burpee", "Escalador (mountain climber)", "Abdominal bicicleta",
+      "Afundo alternado com salto", "Chute de glúteo correndo", "Prancha com toque no ombro", "Skater jump"
+    ]
+  };
+
+  const PROTOCOLS = {
+    mobilidade: { work: 40, rest: 20, label: "40s / 20s" },
+    cardio:     { work: 20, rest: 10, label: "20s / 10s" }
+  };
+
+  const PREP_SECONDS = 5;
+
+  // ---------- State ----------
+  let state = {
+    minutes: 15,
+    level: "mobilidade",
+    circuit: [],      // array of exercise names, one per work interval
+    roundIndex: 0,    // which work interval we're on (0-based)
+    phase: "prep",    // prep | work | rest | done
+    secondsLeft: PREP_SECONDS,
+    running: false,
+    timerId: null,
+    totalSecondsLeft: 0,
+    wakeLock: null,
+    audioCtx: null
+  };
+
+  // ---------- Elements ----------
+  const el = id => document.getElementById(id);
+  const durationRow = el("duration-row");
+  const intensityCards = document.querySelectorAll(".intensity-card");
+  const sumRounds = el("sum-rounds");
+  const sumInterval = el("sum-interval");
+  const sumCount = el("sum-count");
+  const startBtn = el("start-btn");
+
+  const screens = {
+    login: el("login-screen"),
+    setup: el("setup-screen"),
+    workout: el("workout-screen"),
+    done: el("done-screen")
+  };
+
+  const roundNowEl = el("round-now");
+  const roundTotalEl = el("round-total");
+  const timeLeftTotalEl = el("time-left-total");
+  const phaseLabelEl = el("phase-label");
+  const ringFg = el("ring-fg");
+  const timeNumEl = el("time-num");
+  const exerciseNameEl = el("exercise-name");
+  const nextExerciseEl = el("next-exercise");
+  const pauseBtn = el("pause-btn");
+  const resetBtn = el("reset-btn");
+  const skipBtn = el("skip-btn");
+  const restartBtn = el("restart-btn");
+  const doneSummary = el("done-summary");
+
+  const RING_CIRC = 2 * Math.PI * 98;
+  ringFg.style.strokeDasharray = RING_CIRC;
+
+  // ---------- Setup screen interactions ----------
+  durationRow.addEventListener("click", (e) => {
+    const choice = e.target.closest(".choice");
+    if(!choice) return;
+    durationRow.querySelectorAll(".choice").forEach(c => c.classList.remove("selected"));
+    choice.classList.add("selected");
+    state.minutes = parseInt(choice.dataset.min, 10);
+    updateSummary();
+  });
+
+  intensityCards.forEach(card => {
+    card.addEventListener("click", () => {
+      intensityCards.forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+      state.level = card.dataset.level;
+      updateSummary();
+    });
+  });
+
+  function buildCircuit(){
+    const proto = PROTOCOLS[state.level];
+    const cycleSeconds = proto.work + proto.rest;
+    const totalSeconds = state.minutes * 60;
+    const rounds = Math.max(4, Math.round(totalSeconds / cycleSeconds));
+    const pool = EXERCISES[state.level];
+    const picks = [];
+    let lastPick = null;
+    for(let i=0;i<rounds;i++){
+      let candidates = pool.filter(x => x !== lastPick);
+      let pick = candidates[Math.floor(Math.random()*candidates.length)];
+      picks.push(pick);
+      lastPick = pick;
+    }
+    return { rounds, picks, proto };
+  }
+
+  function updateSummary(){
+    const { rounds, picks, proto } = buildCircuit();
+    sumRounds.textContent = rounds;
+    sumInterval.textContent = proto.label;
+    sumCount.textContent = new Set(picks).size + " variações";
+  }
+  updateSummary();
+
+  // ---------- Audio ----------
+  function ensureAudio(){
+    if(!state.audioCtx){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      state.audioCtx = new Ctx();
+    }
+    if(state.audioCtx.state === "suspended") state.audioCtx.resume();
+  }
+  function beep(freq, dur, type){
+    if(!state.audioCtx) return;
+    const ctx = state.audioCtx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + dur + 0.02);
+  }
+  function tickBeep(){ beep(880, 0.09, "square"); }
+  function startBeep(){ beep(1046, 0.22, "sine"); if(navigator.vibrate) navigator.vibrate(120); }
+  function restBeep(){ beep(523, 0.22, "sine"); if(navigator.vibrate) navigator.vibrate([60,40,60]); }
+  function endBeep(){ beep(660,0.15,"sine"); setTimeout(()=>beep(880,0.15,"sine"),160); setTimeout(()=>beep(1174,0.3,"sine"),320); }
+
+  // ---------- Wake lock ----------
+  async function lockScreen(){
+    try{
+      if("wakeLock" in navigator){
+        state.wakeLock = await navigator.wakeLock.request("screen");
+      }
+    }catch(e){ /* ignore, non-critical */ }
+  }
+  function releaseLock(){
+    if(state.wakeLock){ state.wakeLock.release().catch(()=>{}); state.wakeLock = null; }
+  }
+
+  // ---------- Screen switching ----------
+  function showScreen(name){
+    Object.values(screens).forEach(s => s.classList.remove("active"));
+    screens[name].classList.add("active");
+  }
+
+  // ---------- Workout engine ----------
+  function totalWorkoutSeconds(){
+    const proto = PROTOCOLS[state.level];
+    return PREP_SECONDS + state.circuit.length * (proto.work + proto.rest) - proto.rest; // last rest can be skipped conceptually, kept simple
+  }
+
+  function fmt(sec){
+    const m = Math.floor(sec/60).toString().padStart(2,"0");
+    const s = Math.floor(sec%60).toString().padStart(2,"0");
+    return m+":"+s;
+  }
+
+  function setRing(secLeft, secTotal, colorClass){
+    ringFg.classList.remove("work","rest","prep");
+    ringFg.classList.add(colorClass);
+    const frac = secTotal > 0 ? (secLeft/secTotal) : 0;
+    ringFg.style.strokeDashoffset = RING_CIRC * (1-frac);
+  }
+
+  function currentExerciseName(){
+    return state.circuit[state.roundIndex] || "";
+  }
+  function nextExerciseName(){
+    return state.circuit[state.roundIndex+1] || "Última etapa!";
+  }
+
+  function render(){
+    roundNowEl.textContent = Math.min(state.roundIndex+1, state.circuit.length);
+    roundTotalEl.textContent = state.circuit.length;
+    timeLeftTotalEl.textContent = fmt(state.totalSecondsLeft);
+    timeNumEl.textContent = state.secondsLeft;
+    nextExerciseEl.textContent = nextExerciseName();
+
+    const proto = PROTOCOLS[state.level];
+
+    if(state.phase === "prep"){
+      phaseLabelEl.textContent = "Preparar";
+      phaseLabelEl.className = "phase-label prep";
+      exerciseNameEl.textContent = "Primeiro: " + currentExerciseName();
+      setRing(state.secondsLeft, PREP_SECONDS, "prep");
+    } else if(state.phase === "work"){
+      phaseLabelEl.textContent = "Exercício";
+      phaseLabelEl.className = "phase-label work";
+      exerciseNameEl.textContent = currentExerciseName();
+      setRing(state.secondsLeft, proto.work, "work");
+    } else if(state.phase === "rest"){
+      phaseLabelEl.textContent = "Descanso";
+      phaseLabelEl.className = "phase-label rest";
+      exerciseNameEl.textContent = "Respire. Próximo: " + nextExerciseName();
+      setRing(state.secondsLeft, proto.rest, "rest");
+    }
+  }
+
+  function tick(){
+    if(!state.running) return;
+    state.secondsLeft -= 1;
+    state.totalSecondsLeft -= 1;
+
+    if(state.secondsLeft <= 3 && state.secondsLeft > 0 && state.phase !== "prep"){
+      tickBeep();
+    }
+
+    if(state.secondsLeft <= 0){
+      advancePhase();
+      return;
+    }
+    render();
+  }
+
+  function advancePhase(){
+    const proto = PROTOCOLS[state.level];
+
+    if(state.phase === "prep"){
+      state.phase = "work";
+      state.secondsLeft = proto.work;
+      startBeep();
+    } else if(state.phase === "work"){
+      const isLast = state.roundIndex >= state.circuit.length - 1;
+      if(isLast){
+        finishWorkout();
+        return;
+      }
+      state.phase = "rest";
+      state.secondsLeft = proto.rest;
+      restBeep();
+    } else if(state.phase === "rest"){
+      state.roundIndex += 1;
+      state.phase = "work";
+      state.secondsLeft = proto.work;
+      startBeep();
+    }
+    render();
+  }
+
+  function finishWorkout(){
+    state.running = false;
+    clearInterval(state.timerId);
+    releaseLock();
+    endBeep();
+    const proto = PROTOCOLS[state.level];
+    const totalMin = Math.round((state.circuit.length*(proto.work+proto.rest))/60);
+    doneSummary.textContent = `${state.circuit.length} rounds concluídos em cerca de ${totalMin} minutos. Bom dia bem começado.`;
+    showScreen("done");
+  }
+
+  function startTimer(){
+    clearInterval(state.timerId);
+    state.timerId = setInterval(tick, 1000);
+  }
+
+  function beginWorkout(){
+    const built = buildCircuit();
+    state.circuit = built.picks;
+    state.roundIndex = 0;
+    state.phase = "prep";
+    state.secondsLeft = PREP_SECONDS;
+    const proto = PROTOCOLS[state.level];
+    state.totalSecondsLeft = PREP_SECONDS + built.rounds*(proto.work+proto.rest);
+    state.running = true;
+
+    ensureAudio();
+    lockScreen();
+    showScreen("workout");
+    pauseBtn.textContent = "Pausar";
+    render();
+    startTimer();
+  }
+
+  startBtn.addEventListener("click", beginWorkout);
+
+  pauseBtn.addEventListener("click", () => {
+    state.running = !state.running;
+    pauseBtn.textContent = state.running ? "Pausar" : "Continuar";
+    if(state.running){ ensureAudio(); }
+  });
+
+  skipBtn.addEventListener("click", () => {
+    if(state.phase === "prep"){ state.secondsLeft = 1; }
+    else { advancePhase(); }
+  });
+
+  resetBtn.addEventListener("click", () => {
+    state.running = false;
+    clearInterval(state.timerId);
+    releaseLock();
+    showScreen("setup");
+    updateSummary();
+  });
+
+  restartBtn.addEventListener("click", () => {
+    showScreen("setup");
+    updateSummary();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "visible" && state.running && screens.workout.classList.contains("active")){
+      lockScreen();
+    }
+  });
+
+  // ---------- Login (local only, no real server / no real Google auth) ----------
+  const loginForm = el("login-form");
+  const loginEmail = el("login-email");
+  const loginPass = el("login-pass");
+  const toggleEye = el("toggle-eye");
+  const googleBtn = el("google-btn");
+  const guestBtn = el("guest-btn");
+  const forgotLink = el("forgot-link");
+  const signupLink = el("signup-link");
+
+  function enterApp(name){
+    try{ localStorage.setItem("amanhecer_user", name || "Convidado"); }catch(e){}
+    showScreen("setup");
+    updateSummary();
+  }
+
+  toggleEye.addEventListener("click", () => {
+    loginPass.type = loginPass.type === "password" ? "text" : "password";
+  });
+
+  loginForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const val = loginEmail.value.trim();
+    enterApp(val || "Atleta");
+  });
+
+  googleBtn.addEventListener("click", () => {
+    enterApp("Convidado (Google)");
+  });
+
+  guestBtn.addEventListener("click", () => {
+    enterApp("Convidado");
+  });
+
+  forgotLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    alert("Login local de demonstração — não há recuperação de senha real, pois não existe servidor. Use \"Continuar sem conta\" para entrar direto.");
+  });
+
+  signupLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    alert("Este login é apenas local (guardado no seu navegador). Preencha qualquer e-mail e senha e toque em Entrar para criar seu acesso.");
+  });
+
+  // Skip straight to setup if a local session already exists
+  try{
+    if(localStorage.getItem("amanhecer_user")){
+      showScreen("setup");
+    }
+  }catch(e){}
+
+})();
+</script>
+</body>
+</html>
